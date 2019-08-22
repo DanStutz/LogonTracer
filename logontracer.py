@@ -354,8 +354,9 @@ def adetection(counts, users, starttime, tohours):
             count_array[3, row, column] = event["count"]
         elif event["eventid"] == 4776:
             count_array[4, row, column] = event["count"]
+        elif event["eventid"] == 4719:
+            count_array[5, row, column] = event["count"]
 
-    # count_average = count_array.mean(axis=0)
     count_sum = np.sum(count_array, axis=0)
     count_average = count_sum.mean(axis=0)
     num = 0
@@ -373,7 +374,7 @@ def adetection(counts, users, starttime, tohours):
         cfdetect[users[num]] = max(ret)
 
         count_all_array.append(udata.tolist())
-        for var in range(0, 5):
+        for var in range(0, 6):
             con = []
             for i in range(0, tohours + 1):
                 con.append(count_array[var, num, i])
@@ -465,6 +466,8 @@ def decodehmm(frame, users, stime):
                         udata.append(3)
                     elif id == 4625:
                         udata.append(4)
+                    elif id == 4719:
+                        udata.append(5)
                 if len(udata) > 2:
                     data_decode = model.predict(np.array([np.array(udata)], dtype="int").T)
                     unique_data = np.unique(data_decode)
@@ -483,7 +486,7 @@ def decodehmm(frame, users, stime):
 def learnhmm(frame, users, stime):
     lengths = []
     data_array = np.array([])
-    # start_probability = np.array([0.52, 0.37, 0.11])
+    
     emission_probability = np.array([[0.09,   0.05,   0.35,   0.51],
                                      [0.0003, 0.0004, 0.0003, 0.999],
                                      [0.0003, 0.0004, 0.0003, 0.999]])
@@ -496,7 +499,7 @@ def learnhmm(frame, users, stime):
                 for _, data in frame[(frame["date"].str.contains(date)) & (frame["user"] == user) & (frame["host"] == host)].iterrows():
                     id = data["id"]
                     udata = np.append(udata, id)
-                # udata = udata[(udata*np.sign(abs(np.diff(np.concatenate(([0], udata)))))).nonzero()]
+               
                 if udata.shape[0] > 2:
                     data_array = np.append(data_array, udata)
                     lengths.append(udata.shape[0])
@@ -510,9 +513,10 @@ def learnhmm(frame, users, stime):
     data_array[data_array == 4769] = 2
     data_array[data_array == 4624] = 3
     data_array[data_array == 4625] = 4
-    # model = hmm.GaussianHMM(n_components=3, covariance_type="full", n_iter=10000)
+    data_array[data_array == 4719] = 5
+    
     model = hmm.MultinomialHMM(n_components=3, n_iter=10000)
-    # model.startprob_ = start_probability
+    
     model.emissionprob_ = emission_probability
     model.fit(np.array([data_array], dtype="int").T, lengths)
     joblib.dump(model, FPATH + "/model/hmm.pkl")
