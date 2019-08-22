@@ -49,7 +49,7 @@ ENV PYTHONIOENCODING=utf-8
 ## LogonTracer install
 WORKDIR /usr/local/src
 
-RUN git clone https://github.com/JPCERTCC/LogonTracer.git \
+RUN git clone https://github.com/DanStutz/LogonTracer.git \
     && cd LogonTracer \
     && pip3.6 install --upgrade pip \
     && pip3.6 install --upgrade setuptools \
